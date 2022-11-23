@@ -1,17 +1,19 @@
 import http from "http"
 import {Axel} from "../client";
-import {ILovenseConnection} from "../models/lovense";
 
 export default function init(client: Axel) {
     const server = http.createServer((request) => {
+        console.log("Got request!")
+
         if (request.method == "POST") {
             let body = ""
             request.on("data", data => {
                 body += data
             })
             request.on("end", () => {
-                const jsonContent: ILovenseConnection = JSON.parse(body)
-                client.connectedUsers.set(jsonContent.uid, jsonContent)
+                console.log(body)
+                // const jsonContent: ILovenseConnection = JSON.parse(body)
+                // client.connectedUsers.set(jsonContent.uid, jsonContent)
             })
         }
     })
