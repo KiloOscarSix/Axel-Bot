@@ -1,15 +1,13 @@
 import Discord from "discord.js";
 import dotenv from "dotenv";
-import fs from "fs";
 import {loadSlashCommands} from "./commands/load_commands";
 import {createServer} from "./servers";
 import {Axel} from "./client";
 import deployCommands from "./deploy_commands"
 import mongoose from "mongoose";
-import {getServer, Server} from "./models/server";
-import {getRoleResolvable} from "./common";
 import webServer from "./server/server"
 import axios from "axios";
+import fs from "fs";
 
 switch (process.env.NODE_ENV) {
     case "development":
@@ -45,10 +43,10 @@ export const client = new Axel({
 // Init
 client.on(Discord.Events.ClientReady, async () => {
     const botConfig = require("./configs/bot_config.json");
-    console.log(`REDACTED is Running, version: ${botConfig.version}`);
+    console.log(`Axel is Running, version: ${botConfig.version}`);
 
     if (client.user) {
-        client.user.setPresence({activities: [{name: "Destiny 2"}], status: "online"})
+        client.user.setPresence({activities: [{name: "with everyone"}], status: "online"})
     }
 
     // Initialize WebServer
@@ -69,77 +67,15 @@ client.on(Discord.Events.GuildCreate, guild => {
     createServer(guild.id)
 })
 
-
-client.on(Discord.Events.GuildMemberAdd, async (member) => {
-    const server = await getServer(member.guild.id)
-
-    const defaultRoles = await getRoleResolvable(member.guild, server.roles.default)
-
-    member.roles.add(defaultRoles).then()
-})
-
-client.on(Discord.Events.MessageReactionAdd, async (reaction, user) => {
-    const guild = reaction.message.guild
-    if (!guild) return;
-
-    const server = await Server.findOne({id: guild.id}).exec()
-    if (!server) return;
-
-    for (const reactionRole of server.reactionRoles) {
-        if (reaction.message.id == reactionRole.messageId && reaction.emoji.toString() == reactionRole.emoji && user.id !== client.user?.id) {
-            const member = guild.members.cache.find(member => member.id == user.id)
-            if (!member) {
-                break;
-            }
-
-            const role = await guild.roles.fetch(reactionRole.roleId)
-            if (!role) {
-                break;
-            }
-
-            member.roles.add(role)
-                .catch((error) => console.log(error))
-            break;
-        }
-    }
-})
-
-client.on(Discord.Events.MessageReactionRemove, async (reaction, user) => {
-    const guild = reaction.message.guild
-    if (!guild) return;
-
-    const server = await Server.findOne({id: guild.id}).exec()
-    if (!server) return;
-
-    for (const reactionRole of server.reactionRoles) {
-        if (reaction.message.id == reactionRole.messageId && reaction.emoji.toString() == reactionRole.emoji && user.id !== client.user?.id) {
-            const member = guild.members.cache.find(member => member.id == user.id)
-            if (!member) {
-                break;
-            }
-
-            const role = await guild.roles.fetch(reactionRole.roleId)
-            if (!role) {
-                break;
-            }
-
-            member.roles.remove(role)
-                .catch((error) => console.log(error))
-            break;
-        }
-    }
-})
-
 client.on(Discord.Events.MessageCreate, async () => {
-    const domain = "192.168.0.143"
-    const httpPort = "34567"
-
-    await axios.post(`http://${domain}:${httpPort}/command`, {
+    await axios.post(`https://api.lovense-api.com/api/lan/v2/command`, {
+        token: process.env.LOVENSE_TOKEN,
+        uid: Array.from(client.connectedUsers.keys()).join(','),
         command: "Function",
         action: "Vibrate:5",
-        timeSec: 20,
+        timeSec: 2,
         apiVer: 1
-    })
+    });
 })
 
 
@@ -166,48 +102,22 @@ client.on(Discord.Events.InteractionCreate, async interaction => {
 
 })
 
-client.on(Discord.Events.VoiceStateUpdate, async (oldState, newState) => {
-    const roomsCategory = await oldState.guild.channels.fetch("923679215205892098") || await newState.guild.channels.fetch("923679215205892098")
-
-    if (roomsCategory?.type != Discord.ChannelType.GuildCategory) {
-        return console.error("Invalid rooms Category")
-    }
-
-    if (oldState.channel && oldState.channel.members.size == 0) {
-        const emptyRooms = roomsCategory.children.cache.filter(child => child.members.size == 0 && child.name != "Room #1")
-
-        await Promise.all(emptyRooms.map(child => child.delete()))
-    }
-
-    const lastChannel = roomsCategory.children.cache.last()
-
-    if (!lastChannel || lastChannel.members.size == 0) {
-        return;
-    }
-
-    const lastChannelId = lastChannel.name.split("#")[1]
-
-    roomsCategory.children.create({
-        name: `Room #${Number(lastChannelId) + 1}`,
-        type: Discord.ChannelType.GuildVoice,
-        userLimit: 99
-    }).then()
-})
-
 client.on(Discord.Events.Error, error => {
     console.log(`Error Encountered ${error.message}`);
 })
 
 client.login(process.env.TOKEN).then()
 
-process.on("uncaughtException", (error) => {
-    fs.writeFileSync("crash.txt", `Uncaught Exception: ${error.message}`);
-    console.error(error)
-    process.exit(1);
-})
+if (process.env.NODE_ENV != "development") {
+    process.on("uncaughtException", (error) => {
+        fs.writeFileSync("crash.txt", `Uncaught Exception: ${error.message}`);
+        console.error(error)
+        process.exit(1);
+    })
 
-process.on("unhandledRejection", (reason: Error, promise) => {
-    fs.writeFileSync("crash.txt", `Unhandled rejection at ${promise}, reason: ${reason.message}`);
-    console.error(reason)
-    process.exit(1);
-})
+    process.on("unhandledRejection", (reason: Error, promise) => {
+        fs.writeFileSync("crash.txt", `Unhandled rejection at ${promise}, reason: ${reason.message}`);
+        console.error(reason)
+        process.exit(1);
+    })
+}
