@@ -12,14 +12,15 @@ module.exports = {
                 token: process.env.LOVENSE_TOKEN,
                 uid: interaction.user.id,
                 uname: interaction.user.username,
-                utoken: interaction.user.id
+                utoken: interaction.user.id,
+                v: 2
             }
         )
 
         const embed = new Discord.EmbedBuilder()
             .setTitle("Connection QR Code")
             .setDescription("Scan the below image with the Lovense Mobile App")
-            .setImage(result.data.message)
+            .setImage(result.data.data.qr)
 
         Promise.all([
             interaction.user.send({embeds: [embed]}),
