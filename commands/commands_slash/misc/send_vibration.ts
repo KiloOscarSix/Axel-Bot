@@ -4,26 +4,24 @@ import axios from "axios";
 module.exports = {
     data: new Discord.SlashCommandBuilder()
         .setName("send_vibration")
-        .setDescription("Sends 20 second vibration"),
+        .setDescription("Sends 20 second vibration")
+        .setDefaultMemberPermissions(Discord.PermissionFlagsBits.Administrator)
+        .addUserOption(option =>
+            option.setName("user")
+                .setDescription("User to send test vibration to")
+                .setRequired(true)),
 
     async execute(interaction: Discord.ChatInputCommandInteraction) {
-        // const client = interaction.client as Axel
-        // const connectedUser = client.connectedUsers.get(interaction.user.id)
-        //
-        // if (!connectedUser) {
-        //     return interaction.reply({content: "Connection not found, please run /connect first", ephemeral: true})
-        // }
+        const user = interaction.options.getUser("user", true)
 
-        // Testing
-        const domain = "192.168.0.143"
-        const httpPort = "34567"
-
-        await axios.post(`http://${domain}:${httpPort}/command`, {
+        await axios.post(`https://api.lovense-api.com/api/lan/v2/command`, {
+            token: process.env.LOVENSE_TOKEN,
+            uid: user.id,
             command: "Function",
-            action: "Vibrate:5",
-            timeSec: 20,
+            action: "Vibrate:20",
+            timeSec: 5,
             apiVer: 1
-        })
+        });
 
         interaction.reply({content: "Sent command", ephemeral: true}).then()
     }
