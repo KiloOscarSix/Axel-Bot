@@ -22,9 +22,6 @@ module.exports = {
             .setDescription("Scan the below image with the Lovense Mobile App")
             .setImage(result.data.data.qr)
 
-        Promise.all([
-            interaction.user.send({embeds: [embed]}),
-            interaction.reply({content: "Sent connection", ephemeral: true})
-        ]).then()
+        interaction.reply({embeds: [embed], ephemeral: true}).then()
     }
 }
