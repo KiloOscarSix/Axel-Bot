@@ -5,9 +5,9 @@ import {createServer} from "./servers";
 import {Axel} from "./client";
 import deployCommands from "./deploy_commands"
 import mongoose from "mongoose";
-import webServer from "./server/server"
 import axios from "axios";
 import fs from "fs";
+import {ILovenseConnection} from "./models/lovense";
 
 switch (process.env.NODE_ENV) {
     case "development":
@@ -43,14 +43,11 @@ export const client = new Axel({
 // Init
 client.on(Discord.Events.ClientReady, async () => {
     const botConfig = require("./configs/bot_config.json");
-    console.log(`Axel is Running, version: ${botConfig.version}`);
+    console.log(`Marie is Running, version: ${botConfig.version}`);
 
     if (client.user) {
         client.user.setPresence({activities: [{name: "with everyone"}], status: "online"})
     }
-
-    // Initialize WebServer
-    webServer(client)
 
     // Initialize Servers
     await require("./servers").init(client)
@@ -68,9 +65,14 @@ client.on(Discord.Events.GuildCreate, guild => {
 })
 
 client.on(Discord.Events.MessageCreate, async () => {
+    const response = await axios.get("http://80.5.11.93:8443/api/v1/lovense/users")
+    const connectUsers: ILovenseConnection[] = response.data
+
+    const userIds = connectUsers.map(v => v.uid)
+
     await axios.post(`https://api.lovense-api.com/api/lan/v2/command`, {
         token: process.env.LOVENSE_TOKEN,
-        uid: Array.from(client.connectedUsers.keys()).join(','),
+        uid: userIds.join(','),
         command: "Function",
         action: "Vibrate:5",
         timeSec: 2,
