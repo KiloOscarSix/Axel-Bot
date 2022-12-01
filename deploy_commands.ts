@@ -1,9 +1,9 @@
 import Discord from "discord.js";
-import {Axel} from "./client";
+import {Marie} from "./client";
 
 const commands: string[] = [];
 
-export default async function deploy_commands(client: Axel) {
+export default async function deploy_commands(client: Marie) {
     const rest = new Discord.REST({version: '10'}).setToken(process.env.TOKEN!);
 
     for (const command of client.slashCommands.values()) {

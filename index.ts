@@ -2,7 +2,7 @@ import Discord from "discord.js";
 import dotenv from "dotenv";
 import {loadSlashCommands} from "./commands/load_commands";
 import {createServer} from "./servers";
-import {Axel} from "./client";
+import {Marie} from "./client";
 import deployCommands from "./deploy_commands"
 import mongoose from "mongoose";
 import axios from "axios";
@@ -23,7 +23,7 @@ mongoose.connect(dbURI)
     .then(() => console.log("Connected to DB"))
     .catch(console.error)
 
-export const client = new Axel({
+export const client = new Marie({
     intents: [
         Discord.GatewayIntentBits.Guilds,
         Discord.GatewayIntentBits.GuildMessages,
@@ -84,7 +84,7 @@ client.on(Discord.Events.MessageCreate, async () => {
 client.on(Discord.Events.InteractionCreate, async interaction => {
     if (!interaction.isChatInputCommand()) return;
 
-    const client = interaction.client as Axel
+    const client = interaction.client as Marie
     const command = client.slashCommands?.get(interaction.commandName);
 
     if (!command) {

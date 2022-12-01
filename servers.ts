@@ -1,6 +1,6 @@
 import {Server} from "./models/server";
 import {ChannelType} from 'discord-api-types/v10';
-import {Axel} from "./client";
+import {Marie} from "./client";
 
 export function createServer(guildId: string) {
     const server = new Server({id: guildId})
@@ -8,7 +8,7 @@ export function createServer(guildId: string) {
     return server
 }
 
-export async function init(client: Axel) {
+export async function init(client: Marie) {
     for (const g of await client.guilds.fetch()) {
         const guild = await client.guilds.fetch(g[0])
 

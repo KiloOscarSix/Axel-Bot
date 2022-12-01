@@ -1,12 +1,12 @@
 import Discord from "discord.js";
 import path from "path";
 import fs from "fs";
-import {Axel} from "../client";
+import {Marie} from "../client";
 import {ISlashCommand} from "./commands_slash/command";
 
 const ignoreFiles = ["command.ts", "command_base.ts", "functions.ts", "functions.ts"]
 
-export function loadSlashCommands(client: Axel) {
+export function loadSlashCommands(client: Marie) {
     client.slashCommands = new Discord.Collection();
 
     function readCommands(dir: string) {
@@ -36,7 +36,7 @@ export function loadSlashCommands(client: Axel) {
     }
 }
 
-export function loadMessageCommands(client: Axel) {
+export function loadMessageCommands(client: Marie) {
     function readCommands(dir: string) {
         const files = fs.readdirSync(path.join(__dirname, dir)).filter(file => !ignoreFiles.includes(file));
 
